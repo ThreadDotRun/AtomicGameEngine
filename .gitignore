@@ -1,0 +1,13 @@
+# Virtual environment
+venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Other files/folders to exclude
+secret.txt
+logs/
+
+Tests
+Addendum
