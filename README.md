@@ -1,3 +1,5 @@
+📢❗🚨Note: This implimentation currently contains the embedded SQL database persistance and query engine for coordinates - See access times at bottom for db hardware suggestions
+
 # Coordinate System Components README
 This README provides a compact yet comprehensive overview of three Python components for managing 3D spatial data: CoordinateSystem, CoordinateSystemPersistence, and CoordinateSystemDML. These components form an atomic system for storing, persisting, and querying coordinates for entities (e.g., players, NPCs) and static geometry (e.g., walls, planes) in games or data analysis applications.
 
