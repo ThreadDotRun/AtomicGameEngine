@@ -1,15 +1,17 @@
-📢❗🚨Note: This implimentation currently contains the embedded SQL database persistance and query engine for coordinates - See access times at bottom for db hardware suggestions
+📢❗🚨Note: This implementation currently contains the embedded SQL database persistence and query engine for coordinates (with abstract Entity class) - See access times at bottom for db hardware suggestions
 
 # Coordinate System Components README
-This README provides a compact yet comprehensive overview of three Python components for managing 3D spatial data: CoordinateSystem, CoordinateSystemPersistence, and CoordinateSystemDML. These components form an atomic system for storing, persisting, and querying coordinates for entities (e.g., players, NPCs) and static geometry (e.g., walls, planes) in games or data analysis applications.
+This README provides a compact yet comprehensive overview of four Python components for managing 3D spatial data: CoordinateSystem, CoordinateSystemPersistence, CoordinateSystemDML, and Entity. These components form an atomic system for storing, persisting, querying, and managing coordinates for entities (e.g., players, NPCs) and static geometry (e.g., walls, planes) in games or data analysis applications.
 
 ## Overview
 - **CoordinateSystem**: Manages in-memory 3D coordinates for dynamic entities and static geometry (planes, polygons). Provides basic CRUD operations.
 - **CoordinateSystemPersistence**: Persists CoordinateSystem data to a SQLite database and retrieves it, enabling durable storage.
 - **CoordinateSystemDML**: Executes SQL queries on a SQLite database created by CoordinateSystemPersistence, supporting spatial analysis without an in-memory CoordinateSystem.
+- **Entity**: Abstract base class for entities, providing a unified interface to manage positions, perform spatial queries, and persist data using the other components.
 
 ## Dependencies
-- **Python standard library**: sqlite3, json, math, os.
+- **Python standard library**: sqlite3, json, math, os, abc.
+- **External packages**: None.
 - **Type aliases**:
   - `Coordinate3D`: Tuple[float, float, float] (e.g., (x, y, z)).
   - `EntityID`: Union[str, int] (e.g., "player_1", 42).
@@ -22,8 +24,8 @@ This README provides a compact yet comprehensive overview of three Python compon
 
 **API**
 - `__init__(self) -> None`: Initializes empty storage for entities and geometry.
-- `get_version(self) -> str`: Returns version string from version.txt or "unknown version".
-- `get_info_message(self) -> str`: Returns info from info.txt or default message.
+- `get_version(self) -> str`: Returns version string from CoordinateSystemVersion.md or "unknown version".
+- `get_info_message(self) -> str`: Returns info from CoordinateSystemInfo.md or default message.
 - `add_entity(self, entity_id: EntityID, position: Coordinate3D) -> None`: Adds or updates an entity’s position. Raises TypeError for invalid coordinates.
 - `remove_entity(self, entity_id: EntityID) -> None`: Removes an entity. Raises KeyError if not found.
 - `update_entity_position(self, entity_id: EntityID, new_position: Coordinate3D) -> None`: Updates an entity’s position. Raises KeyError or TypeError.
@@ -45,7 +47,7 @@ cs.add_entity("player_1", (1.0, 0.0, 0.0))
 cs.add_static_plane("ground", (0.0, 0.0, 0.0), (0.0, 0.0, 1.0), "ground_plane")
 print(cs.get_entity_position("player_1"))  # (1.0, 0.0, 0.0)
 print(cs.list_static_geometry_by_category("ground_plane"))  # {"ground": {...}}
-print(cs.get_version())  # e.g., "0.1.0" or "unknown version"
+print(cs.get_version())  # e.g., "Version 0.3 beta 'Coordinator Component'"
 ```
 
 ### CoordinateSystemPersistence
@@ -97,11 +99,61 @@ print(dml.list_geometry_by_category("ground_plane"))  # {"ground": {"type": "pla
 print(dml.is_entity_near_geometry("player_1", "ground_plane", 1.0))  # True
 ```
 
+### Entity
+**Description**: Abstract base class for entities (e.g., players, NPCs) in the 3D coordinate system. Integrates with CoordinateSystem for position management, CoordinateSystemDML for spatial queries, and CoordinateSystemPersistence for data storage. Subclasses implement specific behaviors via the `update` method.
+
+**API**
+- `__init__(self, entity_id: EntityID, position: Coordinate3D, coordinate_system: CoordinateSystem, dml: Optional[CoordinateSystemDML] = None, persistence: Optional[CoordinateSystemPersistence] = None) -> None`: Initializes an entity with an ID and position. Adds entity to coordinate_system. Raises ValueError for invalid inputs.
+- `entity_id(self) -> EntityID` (property): Returns the entity’s unique ID.
+- `position(self) -> Optional[Coordinate3D]` (property): Returns the entity’s current position or None.
+- `update_position(self, new_position: Coordinate3D) -> None`: Updates the entity’s position and persists if persistence is available. Raises KeyError or TypeError.
+- `remove(self) -> None`: Removes the entity from the coordinate system and persists. Raises KeyError.
+- `get_nearby_entities(self, min_coords: Coordinate3D, max_coords: Coordinate3D) -> Dict[EntityID, Coordinate3D]`: Returns entities within a bounding box via DML. Raises ValueError if DML is unavailable.
+- `find_nearest_entity(self, type_prefix: Optional[str] = None) -> Optional[Tuple[EntityID, Coordinate3D]]`: Returns the nearest entity via DML. Raises ValueError if DML is unavailable.
+- `is_near_geometry(self, category: str, max_distance: float) -> bool`: Returns True if the entity is within max_distance of specified geometry via DML. Raises ValueError if DML is unavailable, KeyError if entity not found.
+- `save_state(self) -> None`: Saves the coordinate system state via persistence. Raises ValueError if persistence is unavailable.
+- `update(self) -> None` (abstract): Subclasses must implement custom update logic (e.g., movement, state changes).
+- `__str__(self) -> str`: Returns a string representation, e.g., `Entity(id=player_1, position=(1.0, 0.0, 0.0))`.
+
+**Usage Example**
+```python
+from CoordinateSystem import CoordinateSystem
+from CoordinateSystemDML import CoordinateSystemDML
+from CoordinateSystemPersistence import CoordinateSystemPersistence
+from Entity import Entity
+
+# Subclass for a Player entity
+class Player(Entity):
+    def __init__(self, entity_id: str, position: Coordinate3D, coordinate_system: CoordinateSystem,
+                 dml=None, persistence=None):
+        super().__init__(entity_id, position, coordinate_system, dml, persistence)
+        self.health = 100
+    def update(self):
+        if self.position:
+            new_pos = (self.position[0] + 0.1, self.position[1], self.position[2])
+            self.update_position(new_pos)
+            if self.is_near_geometry("wall", 0.5):
+                print(f"{self.entity_id} is near a wall!")
+
+cs = CoordinateSystem()
+persistence = CoordinateSystemPersistence("game_db")
+dml = CoordinateSystemDML("game_db")
+cs.add_static_polygon("wall1", [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)], "wall")
+
+player = Player("player_1", (1.0, 0.0, 0.0), cs, dml, persistence)
+player.update()  # Updates position, prints if near wall
+print(player.position)  # (1.1, 0.0, 0.0)
+print(player.get_nearby_entities((0.0, 0.0, 0.0), (2.0, 2.0, 2.0)))  # {"player_1": (1.1, 0.0, 0.0)}
+player.save_state()  # Persists state
+player.remove()  # Removes entity
+```
+
 ## Notes
 - **Performance**: SQLite on SSD supports 64 entities at 0.1s updates (12-53 ms), improved on RAM drive (~4-11 ms). Optimize with synchronous=0, WAL mode, or selective updates for larger scales.
 - **Conventions**: EntityIDs may include type prefixes (e.g., "player_1") for filtering. Geometry categories (e.g., "wall") are user-defined.
 - **Database**: CoordinateSystemPersistence and CoordinateSystemDML use db_name.db files. Ensure compatibility in schema.
 - **Error Handling**: Methods raise TypeError, ValueError, KeyError, or FileNotFoundError for invalid inputs or missing data.
-- **Files**: Classes are in CoordinateSystem.py, CoordinateSystemPersistence.py, and CoordinateSystemDML.py.
+- **Files**: Classes are in CoordinateSystem.py, CoordinateSystemPersistence.py, CoordinateSystemDML.py, and Entity.py.
+- **Extensibility**: The Entity class is abstract, allowing subclasses to define specific behaviors (e.g., AI for NPCs, input handling for players).
 
 This system is lightweight, extensible, and suitable for real-time applications with proper optimization.
