@@ -11,3 +11,4 @@ logs/
 
 Tests
 Addendum
+*.db
