@@ -12,3 +12,11 @@ logs/
 Tests
 Addendum
 *.db
+APISummarizer.py
+CodeEnumerator.py
+additional.txt
+footer.txt
+header.txt
+prompt_class_usage.prompt
+saved_map*
+code_summary.md
