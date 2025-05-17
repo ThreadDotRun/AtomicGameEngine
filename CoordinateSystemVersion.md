@@ -1,1 +1,1 @@
-Version 0.3 beta 'Coordinator Component'
+Version 1 beta 'This class may be extended but the current interface will only depracte methods'
