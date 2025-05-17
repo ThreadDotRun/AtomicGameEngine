@@ -1,8 +1,8 @@
-# Atomic Coordinate System Engine README
+# Atomic SQL Game Engine 
 
 📢❗🚨 **Note**: This engine features an embedded SQLite database for persistence and querying of spatial coordinates, integrated with an abstract `Entity` class for flexible entity management. See performance notes at the bottom for hardware optimization suggestions.
 
-This README provides an overview of the **Atomic Coordinate System Engine**, a Python-based framework for managing 3D spatial data in real-time applications such as games or simulations. The engine leverages a unique coordinate system backed by SQLite for persistence and querying, making it ideal for applications requiring durable storage and spatial analysis. Included in this project is a hex-based demo game (`gamedemo.py`) that showcases the engine's capabilities through a hexagonal grid map with terrain, units, cities, and pathfinding.
+This README provides an overview of the **Atomic SQL Game Engine**, a Python-based framework for managing 3D spatial data in real-time applications such as games or simulations. The engine leverages a unique coordinate system backed by SQLite for persistence and querying, making it ideal for applications requiring durable storage and spatial analysis. Included in this project is a hex-based demo game (`gamedemo.py`) that showcases the engine's capabilities through a hexagonal grid map with terrain, units, cities, and pathfinding.
 
 ## Overview
 
