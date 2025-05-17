@@ -22,6 +22,7 @@ class Game:
         self.screen = pygame.display.set_mode((Config.WIDTH, Config.HEIGHT))
         pygame.display.set_caption("Hex Civ Map")
         self.clock = pygame.time.Clock()
+        TerrainType.load_config()  # Load terrain config from JSON
         TerrainType.init_sprites()
         ResourceType.init_sprites()
         self.cs = CoordinateSystem()
@@ -147,7 +148,7 @@ class Game:
                         pygame.draw.circle(self.screen, (0, 255, 0), (int(x), int(y)), int(Config.HEX_SIZE / 2), 2)
                     label = self.font.render(f"MP: {unit.movement_points}", True, (0, 0, 0))
                     x, y = HexUtils.hex_to_pixel(pos, self.camera_offset)
-                    self.screen.blit(label, (x - label.get_width() / 2, y + Config.HEX_SIZE))
+                    self.screen.blit(label, (x - label.get_width() // 2, y + Config.HEX_SIZE))
 
             for pos in self.path:
                 x, y = HexUtils.hex_to_pixel(pos, self.camera_offset)

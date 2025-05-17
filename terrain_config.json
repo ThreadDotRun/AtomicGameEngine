@@ -1,0 +1,125 @@
+{
+  "ocean": {
+    "color": [0, 105, 148],
+    "weight": 0.3,
+    "move_cost": 2,
+    "sprite": {
+      "background": {"color": [0, 105, 148]},
+      "shapes": [
+        {
+          "type": "sine_wave",
+          "color": [0, 50, 100],
+          "count": 4,
+          "amplitude": 0.1,
+          "frequency": 0.2,
+          "thickness": 0.05
+        },
+        {
+          "type": "circle",
+          "color": [255, 255, 255, 50],
+          "center": [0.8, 0.2],
+          "radius": 0.1,
+          "count": 3,
+          "spacing": 0.05
+        }
+      ]
+    }
+  },
+  "plain": {
+    "color": [139, 195, 74],
+    "weight": 0.3,
+    "move_cost": 1,
+    "sprite": {
+      "background": {"color": [139, 195, 74]},
+      "shapes": [
+        {
+          "type": "grass",
+          "color": [100, 150, 50],
+          "count": 12,
+          "size": 0.05,
+          "spread": 0.9
+        },
+        {
+          "type": "flower",
+          "color": [255, 255, 0],
+          "count": 3,
+          "size": 0.03,
+          "spread": 0.7
+        }
+      ]
+    }
+  },
+  "hill": {
+    "color": [96, 125, 139],
+    "weight": 0.2,
+    "move_cost": 2,
+    "sprite": {
+      "background": {"color": [96, 125, 139]},
+      "shapes": [
+        {
+          "type": "contour",
+          "color": [70, 100, 110],
+          "count": 3,
+          "size": 0.6,
+          "offset": 0.05
+        },
+        {
+          "type": "rock",
+          "color": [50, 50, 50],
+          "count": 4,
+          "size": 0.08,
+          "spread": 0.5
+        }
+      ]
+    }
+  },
+  "mountain": {
+    "color": [69, 90, 100],
+    "weight": 0.1,
+    "move_cost": 4,
+    "sprite": {
+      "background": {"color": [69, 90, 100]},
+      "shapes": [
+        {
+          "type": "peak",
+          "color": [50, 70, 80],
+          "base_width": 0.8,
+          "height": 0.75,
+          "snow_color": [200, 200, 200],
+          "snow_height": 0.2
+        },
+        {
+          "type": "ridge",
+          "color": [40, 50, 60],
+          "count": 2,
+          "width": 0.3,
+          "offset": 0.1
+        }
+      ]
+    }
+  },
+  "stream": {
+    "color": [73, 196, 218],
+    "weight": 0.1,
+    "move_cost": 3,
+    "sprite": {
+      "background": {"color": [73, 196, 218]},
+      "shapes": [
+        {
+          "type": "flow",
+          "color": [50, 150, 200],
+          "width": 0.3,
+          "curve": 0.2,
+          "thickness": 0.1
+        },
+        {
+          "type": "ripple",
+          "color": [255, 255, 255, 100],
+          "count": 5,
+          "size": 0.05,
+          "spread": 0.8
+        }
+      ]
+    }
+  }
+}
