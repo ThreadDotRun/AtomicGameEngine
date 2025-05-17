@@ -44,7 +44,7 @@ class TerrainType:
         },
         "hill": {
             "color": [96, 125, 139],
-            "weight":0.2,
+            "weight": 0.2,
             "move_cost": 2,
             "sprite": {
                 "background": {"color": [96, 125, 139]},
@@ -90,6 +90,63 @@ class TerrainType:
                         "width": 0.3,
                         "curve": 0.2,
                         "thickness": 0.1
+                    }
+                ]
+            }
+        },
+        "forest": {
+            "color": [34, 139, 34],
+            "weight": 0.2,
+            "move_cost": 3,
+            "sprite": {
+                "background": {"color": [34, 139, 34]},
+                "shapes": [
+                    {
+                        "type": "polygon",
+                        "color": [0, 100, 0],
+                        "count": 8,
+                        "size": 0.1,
+                        "spread": 0.9,
+                        "points": [
+                            [0.0, -0.5],
+                            [-0.5, 0.5],
+                            [0.5, 0.5]
+                        ]
+                    }
+                ]
+            }
+        },
+        "desert": {
+            "color": [194, 178, 128],
+            "weight": 0.2,
+            "move_cost": 2,
+            "sprite": {
+                "background": {"color": [194, 178, 128]},
+                "shapes": [
+                    {
+                        "type": "sine_wave",
+                        "color": [210, 180, 140],
+                        "count": 3,
+                        "amplitude": 0.05,
+                        "frequency": 0.15,
+                        "thickness": 0.1
+                    }
+                ]
+            }
+        },
+        "swamp": {
+            "color": [95, 115, 75],
+            "weight": 0.1,
+            "move_cost": 4,
+            "sprite": {
+                "background": {"color": [95, 115, 75]},
+                "shapes": [
+                    {
+                        "type": "ellipse",
+                        "color": [0, 105, 148, 150],
+                        "count": 6,
+                        "size": [0.15, 0.1],
+                        "spread": 0.8
                     }
                 ]
             }
@@ -213,5 +270,28 @@ class TerrainType:
                         x = width * (0.5 + random.uniform(-shape["spread"]/2, shape["spread"]/2))
                         y = height * (0.5 + random.uniform(-shape["spread"]/2, shape["spread"]/2))
                         pygame.draw.ellipse(surface, color, (x - shape["size"] * width, y - shape["size"] * width / 2, shape["size"] * width * 2, shape["size"] * width))
+
+                elif shape["type"] == "polygon":
+                    for _ in range(shape["count"]):
+                        x = width * (0.5 + random.uniform(-shape["spread"]/2, shape["spread"]/2))
+                        y = height * (0.5 + random.uniform(-shape["spread"]/2, shape["spread"]/2))
+                        size = shape["size"] * width
+                        points = [(x + size * px, y + size * py) for px, py in shape["points"]]
+                        pygame.draw.polygon(surface, color, points)
+
+                elif shape["type"] == "rect":
+                    for _ in range(shape["count"]):
+                        x = width * (0.5 + random.uniform(-shape["spread"]/2, shape["spread"]/2))
+                        y = height * (0.5 + random.uniform(-shape["spread"]/2, shape["spread"]/2))
+                        w, h = [s * width for s in shape["size"]]
+                        pygame.draw.rect(surface, color, (x - w/2, y - h/2, w, h))
+
+                elif shape["type"] == "line":
+                    for _ in range(shape["count"]):
+                        x = width * (0.5 + random.uniform(-shape["spread"]/2, shape["spread"]/2))
+                        y = height * (0.5 + random.uniform(-shape["spread"]/2, shape["spread"]/2))
+                        start = [x + width * shape["start"][0], y + height * shape["start"][1]]
+                        end = [x + width * shape["end"][0], y + height * shape["end"][1]]
+                        pygame.draw.line(surface, color, start, end, int(width * shape["thickness"]))
 
             data["sprite"] = surface

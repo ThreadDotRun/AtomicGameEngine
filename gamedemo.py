@@ -110,8 +110,8 @@ class Game:
 
             self.screen.fill((0, 0, 0))
 
-            # Render all hexes
-            for terrain_type in ["hill", "mountain", "stream", "plain", "ocean"]:
+            # Render all hexes in priority order (low to high)
+            for terrain_type in ["plain", "desert", "forest", "hill", "mountain", "stream", "swamp", "ocean"]:
                 for gid, gdata in self.cs.list_static_geometry_by_category(terrain_type).items():
                     q, r = map(int, gid.split("_")[1:])
                     pos = HexUtils.hex_to_cartesian(q, r, Config.HEX_SIZE)

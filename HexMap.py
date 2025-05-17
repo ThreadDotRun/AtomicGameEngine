@@ -10,29 +10,44 @@ from typing import List, Tuple
 class HexMap:
     TERRAIN_RULES = {
         "ocean": {
-            "allowed": ["ocean", "stream", "plain"],
+            "allowed": ["ocean", "stream", "plain", "swamp"],
             "preferred": ["ocean", "stream"],
-            "forbidden": ["mountain", "hill"],
+            "forbidden": ["mountain", "hill", "forest", "desert"]
         },
         "plain": {
-            "allowed": ["plain", "hill", "stream", "ocean", "mountain"],
-            "preferred": ["plain", "hill", "stream"],
-            "forbidden": [],
+            "allowed": ["plain", "hill", "stream", "ocean", "mountain", "forest", "desert", "swamp"],
+            "preferred": ["plain", "hill", "forest"],
+            "forbidden": []
         },
         "hill": {
-            "allowed": ["plain", "hill", "mountain", "stream"],
+            "allowed": ["plain", "hill", "mountain", "stream", "forest"],
             "preferred": ["hill", "mountain"],
-            "forbidden": ["ocean"],
+            "forbidden": ["ocean", "desert"]
         },
         "mountain": {
             "allowed": ["mountain", "hill", "plain"],
             "preferred": ["mountain", "hill"],
-            "forbidden": ["ocean", "stream"],
+            "forbidden": ["ocean", "stream", "swamp", "desert"]
         },
         "stream": {
-            "allowed": ["stream", "plain", "ocean", "hill"],
+            "allowed": ["stream", "plain", "ocean", "hill", "swamp"],
             "preferred": ["stream", "ocean", "plain"],
-            "forbidden": ["mountain"],
+            "forbidden": ["mountain", "desert"]
+        },
+        "forest": {
+            "allowed": ["plain", "hill", "forest", "stream"],
+            "preferred": ["forest", "plain"],
+            "forbidden": ["ocean", "mountain", "desert"]
+        },
+        "desert": {
+            "allowed": ["plain", "desert"],
+            "preferred": ["desert", "plain"],
+            "forbidden": ["ocean", "stream", "hill", "mountain", "forest", "swamp"]
+        },
+        "swamp": {
+            "allowed": ["plain", "stream", "ocean", "swamp"],
+            "preferred": ["swamp", "stream"],
+            "forbidden": ["mountain", "hill", "desert"]
         }
     }
 
@@ -116,26 +131,29 @@ class HexMap:
 
         # Define rendering priority (higher priority renders LAST, on top)
         terrain_priority = {
-            "ocean": 5,    # Render last (on top)
-            "mountain": 4,
-            "hill": 3,
-            "plain": 2,
-            "stream": 1    # Render first (in the back)
+            "ocean": 8,    # Render last (on top)
+            "swamp": 7,    # Watery terrain, high priority
+            "stream": 6,
+            "mountain": 5,
+            "hill": 4,
+            "forest": 3,   # Trees above plains but below hills
+            "desert": 2,
+            "plain": 1     # Render first (in the back)
         }
 
-        # Sort hexes by terrain priority (ascending order, so oceans added first, streams last)
-        hexes.sort(key=lambda x: terrain_priority.get(x[2], 2))  # Default to plain priority if terrain not found
+        # Sort hexes by terrain priority (ascending order, so plains added first, oceans last)
+        hexes.sort(key=lambda x: terrain_priority.get(x[2], 1))  # Default to plain priority if terrain not found
 
         # Step 4: Add sorted hexes to CoordinateSystem
         for hex_id, vertices, terrain in hexes:
             self.cs.add_static_polygon(hex_id, vertices, category=terrain)
 
-        # Step 5: Add resources (unchanged)
+        # Step 5: Add resources
         for q in range(-self.width // 2, self.width // 2 + 1):
             for r in range(-self.height // 2, self.height // 2 + 1):
                 hex_id = f"hex_{q}_{r}"
                 terrain = self.hex_terrain[hex_id]
-                if random.random() < 0.1 and terrain not in ["ocean", "mountain"]:
+                if random.random() < 0.1 and terrain not in ["ocean", "mountain", "swamp"]:
                     resource_pos = HexUtils.hex_to_cartesian(q, r, Config.HEX_SIZE)
                     self.cs.add_entity(f"resource_{q}_{r}", resource_pos)
                     self.resources[f"resource_{q}_{r}"] = random.choice(list(ResourceType.TYPES.keys()))

@@ -121,5 +121,90 @@
         }
       ]
     }
+  },
+  "forest": {
+    "color": [34, 139, 34],
+    "weight": 0.2,
+    "move_cost": 3,
+    "sprite": {
+      "background": {"color": [34, 139, 34]},
+      "shapes": [
+        {
+          "type": "polygon",
+          "color": [0, 100, 0],
+          "count": 8,
+          "size": 0.1,
+          "spread": 0.9,
+          "points": [
+            [0.0, -0.5],
+            [-0.5, 0.5],
+            [0.5, 0.5]
+          ]
+        },
+        {
+          "type": "rect",
+          "color": [139, 69, 19],
+          "count": 8,
+          "size": [0.05, 0.1],
+          "spread": 0.9
+        }
+      ]
+    }
+  },
+  "desert": {
+    "color": [194, 178, 128],
+    "weight": 0.2,
+    "move_cost": 2,
+    "sprite": {
+      "background": {"color": [194, 178, 128]},
+      "shapes": [
+        {
+          "type": "sine_wave",
+          "color": [210, 180, 140],
+          "count": 3,
+          "amplitude": 0.05,
+          "frequency": 0.15,
+          "thickness": 0.1
+        },
+        {
+          "type": "polygon",
+          "color": [0, 128, 0],
+          "count": 4,
+          "size": 0.05,
+          "spread": 0.7,
+          "points": [
+            [0.0, -0.5],
+            [-0.3, 0.3],
+            [0.3, 0.3]
+          ]
+        }
+      ]
+    }
+  },
+  "swamp": {
+    "color": [95, 115, 75],
+    "weight": 0.1,
+    "move_cost": 4,
+    "sprite": {
+      "background": {"color": [95, 115, 75]},
+      "shapes": [
+        {
+          "type": "ellipse",
+          "color": [0, 105, 148, 150],
+          "count": 6,
+          "size": [0.15, 0.1],
+          "spread": 0.8
+        },
+        {
+          "type": "line",
+          "color": [34, 139, 34],
+          "count": 10,
+          "start": [0.5, 0.8],
+          "end": [0.5, 0.2],
+          "thickness": 0.03,
+          "spread": 0.9
+        }
+      ]
+    }
   }
 }
