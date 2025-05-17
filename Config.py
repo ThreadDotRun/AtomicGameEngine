@@ -2,8 +2,8 @@ class Config:
     HEX_SIZE = 30
     MIN_HEX_SIZE = 15
     MAX_HEX_SIZE = 60
-    WIDTH = 800
-    HEIGHT = 600
-    GRID_WIDTH, GRID_HEIGHT = 50, 50
-    FPS = 60
+    WIDTH = 400
+    HEIGHT = 400
+    GRID_WIDTH, GRID_HEIGHT = 65, 65
+    FPS = 15
     UNIT_MOVEMENT_POINTS = 3

@@ -17,8 +17,8 @@ from HexMap import HexMap
 class Game:
     def __init__(self):
         pygame.init()
-        Config.WIDTH = 800  # Fixed for Studio
-        Config.HEIGHT = 600
+        Config.WIDTH = 1900  # Fixed for Studio
+        Config.HEIGHT = 800
         self.screen = pygame.display.set_mode((Config.WIDTH, Config.HEIGHT))
         pygame.display.set_caption("Hex Civ Map")
         self.clock = pygame.time.Clock()
