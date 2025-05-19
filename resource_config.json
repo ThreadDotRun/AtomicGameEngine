@@ -1,0 +1,50 @@
+{
+    "wood": {
+        "color": [139, 69, 19],
+        "value": 10,
+        "sprite": {
+            "background": {"color": [139, 69, 19]},
+            "shapes": [
+                {
+                    "type": "rectangle",
+                    "color": [160, 82, 45],
+                    "count": 3,
+                    "width": 0.2,
+                    "height": 0.1
+                }
+            ]
+        }
+    },
+    "stone": {
+        "color": [128, 128, 128],
+        "value": 15,
+        "sprite": {
+            "background": {"color": [128, 128, 128]},
+            "shapes": [
+                {
+                    "type": "polygon",
+                    "color": [105, 105, 105],
+                    "count": 4,
+                    "sides": 6,
+                    "size": 0.15
+                }
+            ]
+        }
+    },
+    "gold": {
+        "color": [255, 215, 0],
+        "value": 50,
+        "sprite": {
+            "background": {"color": [255, 215, 0]},
+            "shapes": [
+                {
+                    "type": "circle",
+                    "color": [218, 165, 32],
+                    "count": 2,
+                    "radius": 0.12,
+                    "offset": [0.1, 0.1]
+                }
+            ]
+        }
+    }
+}

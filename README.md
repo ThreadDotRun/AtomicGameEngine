@@ -25,11 +25,11 @@ AtomicGameEngine is designed to facilitate the development of turn-based strateg
 - 📚 API summarization for code documentation
 
 ## Project Structure 📂
-The project uses a flat structure with all files in the root directory:
+The project includes a root directory with Python files, configuration files, and nested directories for tests, documentation, and assets:
 
 ```
 AtomicGameEngine/
-|-- APISummarizer.py        # 📝 Summarizes project APIs (new)
+|-- APISummarizer.py        # 📝 Summarizes project APIs
 |-- City.py                 # 🏰 City entity management
 |-- CombatSystem.py         # ⚔️ Handles combat mechanics
 |-- Config.py               # ⚙️ Configuration settings
@@ -38,24 +38,30 @@ AtomicGameEngine/
 |-- CoordinateSystemInfo.md # 📜 Coordinate system documentation
 |-- CoordinateSystemPersistence.py  # 💾 Persists coordinate data
 |-- CoordinateSystemVersion.md  # 📜 Version info for coordinate system
-|-- CodeEnumerator.py       # 🔎 Codebase analysis tool (new)
+|-- CodeEnumerator.py       # 🔎 Codebase analysis tool
 |-- Entity.py               # 🧑 Base entity class
 |-- gamedemo.py             # 🎮 Game demo implementation
 |-- HexMap.py               # 🌍 Hex map generation and management
 |-- HexUtils.py             # 🔢 Hex grid utilities
+|-- JsonConfigManager.py    # 📋 Manages JSON configuration data
 |-- Pathfinding.py          # 🛤️ A* pathfinding implementation
 |-- ResourceType.py         # 🪙 Resource type definitions
 |-- terrain_config.json     # ⛰️ Terrain configuration file
+|-- resource_config.json    # 🪙 Resource configuration file
 |-- TerrainType.py          # ⛰️ Terrain type definitions
-|-- TestCoordinateSystem.py # ✅ Tests coordinate system
-|-- TestCoordinateSystemDML.py  # ✅ Tests coordinate DML
-|-- TestCoordinateSystemPersistence.py  # ✅ Tests persistence
-|-- TestEntity.py           # ✅ Tests entity behaviors
 |-- Unit.py                 # 👷 Unit entity management
-|-- Unit_test_CombatSystem.py  # ✅ Tests combat system
+|-- Tests/                 # ✅ Test suites
+|   |-- TestCoordinateSystem.py
+|   |-- TestCoordinateSystemDML.py
+|   |-- TestCoordinateSystemPersistence.py
+|   |-- TestEntity.py
+|   |-- Unit_test_CombatSystem.py
+|-- Addendum/              # 📜 Additional documentation
+|-- assets/                # 🎨 Game assets
+    |-- images/            # 🖼️ Image resources
 ```
 
-**Note**: Total files: 24 (19 Python, 2 Markdown, 1 JSON). New files (`APISummarizer.py`, `CodeEnumerator.py`) have been added since the older structure.
+**Note**: Total files: 29 (25 Python, 2 Markdown, 2 JSON). New file `JsonConfigManager.py` enhances configuration management, alongside `APISummarizer.py` and `CodeEnumerator.py`. Test files are in `Tests/`, documentation in `Addendum/`, and images in `assets/images/`.
 
 ## Key Components 🔧
 - **CoordinateSystem**: Manages entities and static geometry on a hexagonal grid, supporting up to 1000x1000 hexes with axial coordinates (q, r). 🗺️
@@ -65,6 +71,7 @@ AtomicGameEngine/
 - **CoordinateSystemPersistence**: Saves and loads game state to/from a database, supporting up to 10,000 entities by default. 💾
 - **Entity/Unit/City**: Core classes for game objects with position and behavior management. 👥🏰
 - **HexMap**: Generates and manages the game world map with terrain rules, defaulting to 100x100 hexes. 🌍
+- **JsonConfigManager**: Loads and validates JSON configuration data, such as 5 terrain types (e.g., desert with `move_cost: 2`) and 3 resource types (e.g., wood with `value: 10`). 📋
 - **APISummarizer**: Generates summaries of the project’s API for documentation. 📝
 
 ## Setup Instructions ⚙️
@@ -90,11 +97,11 @@ AtomicGameEngine/
 4. **Run Tests** ✅:
    Execute the test suite:
    ```bash
-   python -m unittest discover .
+   python -m unittest discover Tests
    ```
 
 ## Testing ✅
-The project includes 5 unit test files in the root directory, covering approximately 50 test cases (estimated). Key test files include:
+The project includes 5 unit test files in the `Tests/` directory, covering approximately 50 test cases (estimated). Key test files include:
 - `TestCoordinateSystem.py`: Tests coordinate system functionality. 🗺️
 - `TestCoordinateSystemPersistence.py`: Tests persistence layer. 💾
 - `Unit_test_CombatSystem.py`: Tests combat mechanics. ⚔️
@@ -103,11 +110,28 @@ The project includes 5 unit test files in the root directory, covering approxima
 
 Run tests using:
 ```bash
-python -m unittest discover .
+python -m unittest discover Tests
 ```
 
 ## API Reference 📚
 Below is a summary of the key classes and their methods to help developers integrate AtomicGameEngine into their applications.
+
+### `JsonConfigManager` 📋
+Manages JSON configuration data, such as 5 terrain types (e.g., desert with `move_cost: 2`) and 3 resource types (e.g., wood with `value: 10`), with validation for numerical fields.
+
+- **Constructor**:
+  ```python
+  JsonConfigManager(config_path)
+  ```
+  Initializes with path to JSON config file (e.g., `terrain_config.json`). Raises `FileNotFoundError` if the file is missing or `ValueError` if not JSON.
+
+- **Methods**:
+  ```python
+  load_config()  # Loads and returns JSON data as a dictionary (up to 1MB)
+  validate_config(schema)  # Validates JSON against a schema (e.g., move_cost > 0, color list length 3)
+  get_config(key)  # Retrieves config data for a key (e.g., 'desert')
+  get_all_keys()  # Returns list of all top-level keys (e.g., ['desert', 'swamp', 'forest', 'mountain', 'plains'])
+  ```
 
 ### `APISummarizer` 📝
 Manages API summarization for project documentation.
@@ -276,10 +300,11 @@ Handles data manipulation for coordinate systems.
   ```
 
 ### `ResourceType` 🪙
-Manages resource type definitions.
+Manages resource type definitions, using `JsonConfigManager` for 3 default types (e.g., wood with `value: 10`).
 
 - **Methods** (static):
   ```python
+  load_config(config_path)  # Loads resource config via JsonConfigManager
   init_sprites()  # Initializes resource sprites
   ```
 
@@ -350,11 +375,11 @@ Generates and manages hex-based game maps, defaulting to 100x100 hexes.
   ```
 
 ### `TerrainType` ⛰️
-Manages terrain type definitions.
+Manages terrain type definitions, using `JsonConfigManager` for 5 default types (e.g., desert with `move_cost: 2`).
 
 - **Methods** (static):
   ```python
-  load_config(config_path)  # Loads terrain configuration
+  load_config(config_path)  # Loads terrain config via JsonConfigManager
   init_sprites()  # Initializes terrain sprites
   ```
 
