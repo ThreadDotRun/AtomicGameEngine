@@ -13,29 +13,38 @@ from City import City
 from Pathfinding import Pathfinding
 from HexUtils import HexUtils
 from HexMap import HexMap
+from CombatSystem import CombatSystem
 
 class Game:
     def __init__(self):
         pygame.init()
-        Config.WIDTH = 1900  # Fixed for Studio
+        Config.WIDTH = 1900
         Config.HEIGHT = 800
         self.screen = pygame.display.set_mode((Config.WIDTH, Config.HEIGHT))
         pygame.display.set_caption("Hex Civ Map")
         self.clock = pygame.time.Clock()
-        TerrainType.load_config()  # Load terrain config from JSON
+        TerrainType.load_config()
         TerrainType.init_sprites()
         ResourceType.init_sprites()
         self.cs = CoordinateSystem()
         self.persistence = CoordinateSystemPersistence("game_map")
-        self.map = HexMap(Config.GRID_WIDTH, Config.GRID_HEIGHT, self.cs, self.persistence)
         self.dml = CoordinateSystemDML(self.persistence.conn)
-        # Initialize multiple units at different hex coordinates
+        self.combat_system = CombatSystem(self.cs, self.dml, self.persistence)
+        self.map = HexMap(Config.GRID_WIDTH, Config.GRID_HEIGHT, self.cs, self.persistence)
+        # Initialize units and cities with DML and persistence
         self.units = [
-            Unit("unit_0", HexUtils.hex_to_cartesian(0, 0, Config.HEX_SIZE), self.cs),
-            Unit("unit_1", HexUtils.hex_to_cartesian(1, 1, Config.HEX_SIZE), self.cs),
-            Unit("unit_2", HexUtils.hex_to_cartesian(-1, -1, Config.HEX_SIZE), self.cs)
+            Unit("unit_0", HexUtils.hex_to_cartesian(0, 0, Config.HEX_SIZE), self.cs, self.dml, self.persistence),
+            Unit("unit_1", HexUtils.hex_to_cartesian(1, 1, Config.HEX_SIZE), self.cs, self.dml, self.persistence),
+            Unit("unit_2", HexUtils.hex_to_cartesian(-1, -1, Config.HEX_SIZE), self.cs, self.dml, self.persistence)
         ]
-        self.cities = [City("city_0", HexUtils.hex_to_cartesian(2, 2, Config.HEX_SIZE), self.cs, "Capital")]
+        self.cities = [
+            City("city_0", HexUtils.hex_to_cartesian(2, 2, Config.HEX_SIZE), self.cs, self.dml, self.persistence, "Capital")
+        ]
+        # Initialize combat attributes
+        for unit in self.units:
+            self.combat_system.update_combat_attributes(unit.entity_id)
+        for city in self.cities:
+            self.combat_system.update_combat_attributes(city.entity_id, health=200.0, defense=20.0)
         self.persistence.save_coordinate_system(self.cs)
         self.camera_offset = [0, 0]
         self.dragging = False
@@ -50,6 +59,9 @@ class Game:
         self.turn += 1
         for unit in self.units:
             unit.movement_points = Config.UNIT_MOVEMENT_POINTS
+            unit.update()  # Update status effects
+        for city in self.cities:
+            city.update()
         self.selected_unit = None
         self.path = []
 
@@ -64,7 +76,6 @@ class Game:
                         mx, my = pygame.mouse.get_pos()
                         q, r = HexUtils.pixel_to_hex(mx, my, Config.HEX_SIZE, self.camera_offset)
                         pos = HexUtils.hex_to_cartesian(q, r, Config.HEX_SIZE)
-                        # Use max_distance to limit unit selection to nearby units
                         nearest = self.dml.find_nearest_entity(pos, "unit_", max_distance=Config.HEX_SIZE)
                         if nearest:
                             unit_id, _ = nearest
@@ -85,16 +96,35 @@ class Game:
                                         if terrain:
                                             total_cost += TerrainType.TYPES[terrain["category"]]["move_cost"]
                                         else:
-                                            total_cost += 1  # Default cost for missing terrain
+                                            total_cost += 1
                                     print(f"Total movement cost: {total_cost}, Movement points: {self.selected_unit.movement_points}")
                                     if total_cost <= self.selected_unit.movement_points:
-                                        self.cs.update_entity_position(self.selected_unit.entity_id, pos)
+                                        self.selected_unit.update_position(pos)
                                         self.selected_unit.movement_points -= total_cost
                                         self.path = []
                                     else:
                                         self.path = path
                         self.dragging = True
                         self.last_pos = event.pos
+                    elif event.button == 2:  # Middle click for combat
+                        mx, my = pygame.mouse.get_pos()
+                        q, r = HexUtils.pixel_to_hex(mx, my, Config.HEX_SIZE, self.camera_offset)
+                        pos = HexUtils.hex_to_cartesian(q, r, Config.HEX_SIZE)
+                        nearest = self.dml.find_nearest_entity(pos, max_distance=Config.ATTACK_RANGE)
+                        if nearest and self.selected_unit and nearest[0] != self.selected_unit.entity_id:
+                            target_id, _ = nearest
+                            target = next((u for u in self.units if u.entity_id == target_id), None)
+                            if not target:
+                                target = next((c for c in self.cities if c.entity_id == target_id), None)
+                            if target:
+                                print(f"Initiating combat: {self.selected_unit.entity_id} vs {target.entity_id}")
+                                defeated = self.combat_system.initiate_combat(self.selected_unit.entity_id, target_id)
+                                if defeated:
+                                    if target in self.units:
+                                        self.units.remove(target)
+                                    elif target in self.cities:
+                                        self.cities.remove(target)
+                                    print(f"Target {target_id} defeated!")
                     elif event.button == 3:
                         self.persistence.save_coordinate_system(self.cs)
                 elif event.type == pygame.MOUSEBUTTONUP:
@@ -122,7 +152,6 @@ class Game:
 
             self.screen.fill((0, 0, 0))
 
-            # Render all hexes in priority order (low to high)
             for terrain_type in ["plain", "desert", "forest", "hill", "mountain", "stream", "swamp", "ocean"]:
                 for gid, gdata in self.cs.list_static_geometry_by_category(terrain_type).items():
                     q, r = map(int, gid.split("_")[1:])
@@ -135,12 +164,11 @@ class Game:
                     if resource_type:
                         HexUtils.draw_resource(self.screen, pos, Config.HEX_SIZE, resource_type, self.camera_offset)
 
-            # Visual debugging: Show clicked hex
             if self.hover_hex:
                 q, r = self.hover_hex
                 pos = HexUtils.hex_to_cartesian(q, r, Config.HEX_SIZE)
                 x, y = HexUtils.hex_to_pixel(pos, self.camera_offset)
-                pygame.draw.circle(self.screen, (255, 0, 0), (int(x), int(y)), 5)  # Red dot at clicked hex center
+                pygame.draw.circle(self.screen, (255, 0, 0), (int(x), int(y)), 5)
                 points = [(x + Config.HEX_SIZE * math.cos(math.pi / 3 * i),
                          y + Config.HEX_SIZE * math.sin(math.pi / 3 * i)) for i in range(6)]
                 pygame.draw.polygon(self.screen, (255, 255, 0), points, 2)
@@ -152,6 +180,14 @@ class Game:
                 pos = self.cs.get_entity_position(city.entity_id)
                 if pos:
                     HexUtils.draw_city(self.screen, pos, Config.HEX_SIZE, city, self.camera_offset)
+                    attrs = self.combat_system.get_combat_attributes(city.entity_id) or {}
+                    x, y = HexUtils.hex_to_pixel(pos, self.camera_offset)
+                    health_label = self.font.render(f"HP: {int(attrs.get('health', 0))}", True, (0, 0, 0))
+                    self.screen.blit(health_label, (x - health_label.get_width() // 2, y + Config.HEX_SIZE + 15))
+                    status_text = ", ".join(f"{k}:{v}" for k, v in attrs.get("status_effects", {}).items())
+                    if status_text:
+                        status_label = self.font.render(status_text, True, (255, 0, 0))
+                        self.screen.blit(status_label, (x - status_label.get_width() // 2, y + Config.HEX_SIZE + 30))
 
             for unit in self.units:
                 pos = self.cs.get_entity_position(unit.entity_id)
@@ -160,9 +196,16 @@ class Game:
                     if unit == self.selected_unit:
                         x, y = HexUtils.hex_to_pixel(pos, self.camera_offset)
                         pygame.draw.circle(self.screen, (0, 255, 0), (int(x), int(y)), int(Config.HEX_SIZE / 2), 2)
-                    label = self.font.render(f"MP: {unit.movement_points}", True, (0, 0, 0))
+                    attrs = self.combat_system.get_combat_attributes(unit.entity_id) or {}
                     x, y = HexUtils.hex_to_pixel(pos, self.camera_offset)
-                    self.screen.blit(label, (x - label.get_width() // 2, y + Config.HEX_SIZE))
+                    mp_label = self.font.render(f"MP: {unit.movement_points}", True, (0, 0, 0))
+                    self.screen.blit(mp_label, (x - mp_label.get_width() // 2, y + Config.HEX_SIZE))
+                    health_label = self.font.render(f"HP: {int(attrs.get('health', 0))}", True, (0, 0, 0))
+                    self.screen.blit(health_label, (x - health_label.get_width() // 2, y + Config.HEX_SIZE + 15))
+                    status_text = ", ".join(f"{k}:{v}" for k, v in attrs.get("status_effects", {}).items())
+                    if status_text:
+                        status_label = self.font.render(status_text, True, (255, 0, 0))
+                        self.screen.blit(status_label, (x - status_label.get_width() // 2, y + Config.HEX_SIZE + 30))
 
             for pos in self.path:
                 x, y = HexUtils.hex_to_pixel(pos, self.camera_offset)

@@ -7,3 +7,7 @@ class Config:
     GRID_WIDTH, GRID_HEIGHT = 65, 65
     FPS = 15
     UNIT_MOVEMENT_POINTS = 3
+    DEFAULT_HEALTH = 100.0
+    DEFAULT_ATTACK_POWER = 20.0
+    DEFAULT_DEFENSE = 10.0
+    ATTACK_RANGE = 1.5 * HEX_SIZE  # Approx. 1 hex distance
