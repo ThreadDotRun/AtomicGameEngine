@@ -32,7 +32,7 @@ class CoordinateSystemDML:
         except sqlite3.OperationalError:
             return {}
 
-    def find_nearest_entity(self, point: Coordinate3D, type_prefix: Optional[str] = None) -> Optional[Tuple[EntityID, Coordinate3D]]:
+    def find_nearest_entity(self, point: Coordinate3D, type_prefix: Optional[str] = None, max_distance: float = 30.0) -> Optional[Tuple[EntityID, Coordinate3D]]:
         try:
             cursor = self.conn.cursor()
             query = "SELECT id, x, y, z FROM entities"
@@ -46,7 +46,7 @@ class CoordinateSystemDML:
             for id, x, y, z in cursor.fetchall():
                 pos = (x, y, z)
                 dist = math.sqrt(sum((point[i] - pos[i]) ** 2 for i in range(3)))
-                if dist < min_dist:
+                if dist < min_dist and dist <= max_distance:
                     min_dist = dist
                     nearest = (id, pos)
             return nearest

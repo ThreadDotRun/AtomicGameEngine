@@ -29,7 +29,12 @@ class Game:
         self.persistence = CoordinateSystemPersistence("game_map")
         self.map = HexMap(Config.GRID_WIDTH, Config.GRID_HEIGHT, self.cs, self.persistence)
         self.dml = CoordinateSystemDML(self.persistence.conn)
-        self.units = [Unit("unit_0", HexUtils.hex_to_cartesian(0, 0, Config.HEX_SIZE), self.cs)]
+        # Initialize multiple units at different hex coordinates
+        self.units = [
+            Unit("unit_0", HexUtils.hex_to_cartesian(0, 0, Config.HEX_SIZE), self.cs),
+            Unit("unit_1", HexUtils.hex_to_cartesian(1, 1, Config.HEX_SIZE), self.cs),
+            Unit("unit_2", HexUtils.hex_to_cartesian(-1, -1, Config.HEX_SIZE), self.cs)
+        ]
         self.cities = [City("city_0", HexUtils.hex_to_cartesian(2, 2, Config.HEX_SIZE), self.cs, "Capital")]
         self.persistence.save_coordinate_system(self.cs)
         self.camera_offset = [0, 0]
@@ -59,22 +64,29 @@ class Game:
                         mx, my = pygame.mouse.get_pos()
                         q, r = HexUtils.pixel_to_hex(mx, my, Config.HEX_SIZE, self.camera_offset)
                         pos = HexUtils.hex_to_cartesian(q, r, Config.HEX_SIZE)
-                        nearest = self.dml.find_nearest_entity(pos, "unit_")
+                        # Use max_distance to limit unit selection to nearby units
+                        nearest = self.dml.find_nearest_entity(pos, "unit_", max_distance=Config.HEX_SIZE)
                         if nearest:
                             unit_id, _ = nearest
                             self.selected_unit = next((u for u in self.units if u.entity_id == unit_id), None)
+                            print(f"Selected unit: {self.selected_unit.entity_id if self.selected_unit else None}")
                             self.path = []
                         else:
                             if self.selected_unit and self.selected_unit.movement_points > 0:
                                 start = self.cs.get_entity_position(self.selected_unit.entity_id)
                                 path = Pathfinding.a_star(start, pos, self.cs, self.dml)
+                                print(f"Path found: {path}")
                                 if path:
                                     total_cost = 0
                                     for i in range(1, len(path)):
                                         q, r = HexUtils.cartesian_to_hex(path[i][0], path[i][1], Config.HEX_SIZE)
                                         terrain = self.cs.get_static_geometry(f"hex_{q}_{r}")
+                                        print(f"Hex {q},{r}: {terrain}")
                                         if terrain:
                                             total_cost += TerrainType.TYPES[terrain["category"]]["move_cost"]
+                                        else:
+                                            total_cost += 1  # Default cost for missing terrain
+                                    print(f"Total movement cost: {total_cost}, Movement points: {self.selected_unit.movement_points}")
                                     if total_cost <= self.selected_unit.movement_points:
                                         self.cs.update_entity_position(self.selected_unit.entity_id, pos)
                                         self.selected_unit.movement_points -= total_cost
@@ -123,10 +135,12 @@ class Game:
                     if resource_type:
                         HexUtils.draw_resource(self.screen, pos, Config.HEX_SIZE, resource_type, self.camera_offset)
 
+            # Visual debugging: Show clicked hex
             if self.hover_hex:
                 q, r = self.hover_hex
                 pos = HexUtils.hex_to_cartesian(q, r, Config.HEX_SIZE)
                 x, y = HexUtils.hex_to_pixel(pos, self.camera_offset)
+                pygame.draw.circle(self.screen, (255, 0, 0), (int(x), int(y)), 5)  # Red dot at clicked hex center
                 points = [(x + Config.HEX_SIZE * math.cos(math.pi / 3 * i),
                          y + Config.HEX_SIZE * math.sin(math.pi / 3 * i)) for i in range(6)]
                 pygame.draw.polygon(self.screen, (255, 255, 0), points, 2)

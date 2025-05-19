@@ -31,7 +31,8 @@ class Pathfinding:
         
         while open_set:
             current_f, current = open_set.pop(0)  # Replaced heappop with sorted list pop
-            if abs(current[0] - goal[0]) < 1e-6 and abs(current[1] - goal[1]) < 1e-6:
+            # Relaxed goal check using hex distance
+            if Pathfinding.hex_distance(current, goal) < 1.0:
                 path = []
                 while current in came_from:
                     path.append(current)
