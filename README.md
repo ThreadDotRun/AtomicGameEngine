@@ -12,6 +12,8 @@ AtomicGameEngine is a Python-based game engine for creating hexagonal grid-based
 - [Contributing](#contributing) 🤝
 - [License](#license) 📝
 
+![Atomic Game Engine Overview](./assets/images/readme_image_1.png)
+
 ## Overview 🌟
 AtomicGameEngine is designed to facilitate the development of turn-based strategy games with a focus on hexagonal grid systems. It includes features such as:
 - 🗺️ Hexagonal coordinate system management
