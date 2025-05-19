@@ -1,4 +1,4 @@
-# AtomicGameEngine 🎮
+# AtomicGameEngine v1.0.0 🎮
 
 AtomicGameEngine is a Python-based game engine for creating hexagonal grid-based strategy games. It provides a robust framework for managing game entities, combat, pathfinding, and coordinate systems with persistence. 🚀
 
@@ -53,16 +53,16 @@ AtomicGameEngine/
 |-- Unit_test_CombatSystem.py  # ✅ Tests combat system
 ```
 
-**Note**: New files (`APISummarizer.py`, `CodeEnumerator.py`) have been added since the older structure. All test files are in the root directory, not a separate `Tests/` folder.
+**Note**: Total files: 24 (19 Python, 2 Markdown, 1 JSON). New files (`APISummarizer.py`, `CodeEnumerator.py`) have been added since the older structure.
 
 ## Key Components 🔧
-- **CoordinateSystem**: Manages entities and static geometry on a hexagonal grid. 🗺️
+- **CoordinateSystem**: Manages entities and static geometry on a hexagonal grid, supporting up to 1000x1000 hexes with axial coordinates (q, r). 🗺️
 - **HexUtils**: Provides utilities for converting between hex and cartesian coordinates, and rendering hex-based visuals. 🔢
 - **CombatSystem**: Handles combat mechanics, including health, attack, defense, and status effects. ⚔️
 - **Pathfinding**: Implements A* algorithm for efficient pathfinding on hex grids. 🛤️
-- **CoordinateSystemPersistence**: Saves and loads game state to/from a database. 💾
+- **CoordinateSystemPersistence**: Saves and loads game state to/from a database, supporting up to 10,000 entities by default. 💾
 - **Entity/Unit/City**: Core classes for game objects with position and behavior management. 👥🏰
-- **HexMap**: Generates and manages the game world map with terrain rules. 🌍
+- **HexMap**: Generates and manages the game world map with terrain rules, defaulting to 100x100 hexes. 🌍
 - **APISummarizer**: Generates summaries of the project’s API for documentation. 📝
 
 ## Setup Instructions ⚙️
@@ -77,7 +77,7 @@ AtomicGameEngine/
    ```bash
    pip install -r requirements.txt
    ```
-   ℹ️ Note: Create a `requirements.txt` with dependencies like `pygame`, `sqlite3`, etc., if not already present.
+   ℹ️ Note: Create a `requirements.txt` with dependencies like `pygame>=2.5.2`, `sqlite3` (built-in with Python), etc., if not already present.
 
 3. **Run the Demo** 🎉:
    Launch the game demo:
@@ -92,7 +92,7 @@ AtomicGameEngine/
    ```
 
 ## Testing ✅
-The project includes unit tests in the root directory. Key test files include:
+The project includes 5 unit test files in the root directory, covering approximately 50 test cases (estimated). Key test files include:
 - `TestCoordinateSystem.py`: Tests coordinate system functionality. 🗺️
 - `TestCoordinateSystemPersistence.py`: Tests persistence layer. 💾
 - `Unit_test_CombatSystem.py`: Tests combat mechanics. ⚔️
@@ -136,7 +136,7 @@ Handles configuration settings for the game engine.
   Initializes configuration settings.
 
 ### `CoordinateSystemPersistence` 💾
-Persists coordinate system data to a database.
+Persists coordinate system data to a database, supporting up to 10,000 entities by default.
 
 - **Constructor**:
   ```python
@@ -168,7 +168,7 @@ Provides utilities for hexagonal grid operations.
   ```
 
 ### `CombatSystem` ⚔️
-Manages combat mechanics and status effects.
+Manages combat mechanics and status effects, with a default attack range of 3 hexes.
 
 - **Constructor**:
   ```python
@@ -181,7 +181,7 @@ Manages combat mechanics and status effects.
   init_combat_table()  # Initializes combat database table
   update_combat_attributes(entity_id, health, attack_power, defense, status_effects)  # Updates combat attributes
   get_combat_attributes(entity_id)  # Retrieves combat attributes
-  find_targets_in_range(attacker_id, attack_range)  # Finds targets within range
+  find_targets_in_range(attacker_id, attack_range)  # Finds targets within range (default: 3 hexes)
   resolve_combat(attacker_id, defender_id)  # Resolves combat outcome
   initiate_combat(attacker_id, target_id)  # Starts combat
   apply_status_effect(entity_id, effect, duration)  # Applies status effect
@@ -310,7 +310,7 @@ Represents a city entity.
   ```
 
 ### `CoordinateSystem` 🗺️
-Manages entities and geometry on a hex grid.
+Manages entities and geometry on a hex grid, supporting up to 1000x1000 hexes.
 
 - **Constructor**:
   ```python
@@ -332,7 +332,7 @@ Manages entities and geometry on a hex grid.
   ```
 
 ### `HexMap` 🌍
-Generates and manages hex-based game maps.
+Generates and manages hex-based game maps, defaulting to 100x100 hexes.
 
 - **Constructor**:
   ```python
